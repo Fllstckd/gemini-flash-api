@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Flash API Demo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Gemini Flash API Demo</h1>
+        <p>Interact with the Gemini 1.5 Flash model through various inputs.</p>
+
+        <section class="api-section">
+            <h2>Generate Text</h2>
+            <div class="form-group">
+                <label for="text-prompt">Prompt:</label>
+                <textarea id="text-prompt" placeholder="Enter your text prompt here..."></textarea>
+            </div>
+            <button onclick="generateText()">Generate</button>
+            <div class="output" id="text-output"></div>
+        </section>
+
+        <section class="api-section">
+            <h2>Generate from Image</h2>
+            <div class="form-group">
+                <label for="image-file">Image:</label>
+                <input type="file" id="image-file" accept="image/*">
+            </div>
+            <div class="form-group">
+                <label for="image-prompt">Prompt (optional):</label>
+                <textarea id="image-prompt" placeholder="Describe or ask a question about the image..."></textarea>
+            </div>
+            <button onclick="generateFromImage()">Generate</button>
+            <div class="output" id="image-output"></div>
+        </section>
+
+        <section class="api-section">
+            <h2>Generate from Document</h2>
+            <div class="form-group">
+                <label for="document-file">Document:</label>
+                <input type="file" id="document-file" accept=".pdf,.txt,.docx">
+            </div>
+            <div class="form-group">
+                <label for="document-prompt">Prompt (optional):</label>
+                <textarea id="document-prompt" placeholder="Summarize or ask a question about the document..."></textarea>
+            </div>
+            <button onclick="generateFromDocument()">Generate</button>
+            <div class="output" id="document-output"></div>
+        </section>
+
+        <section class="api-section">
+            <h2>Generate from Audio</h2>
+            <div class="form-group">
+                <label for="audio-file">Audio:</label>
+                <input type="file" id="audio-file" accept="audio/*">
+            </div>
+            <div class="form-group">
+                <label for="audio-prompt">Prompt (optional):</label>
+                <textarea id="audio-prompt" placeholder="Transcribe or ask a question about the audio..."></textarea>
+            </div>
+            <button onclick="generateFromAudio()">Generate</button>
+            <div class="output" id="audio-output"></div>
+        </section>
+    </div>
+
+    <script src="main.js"></script>
+    <script>
+        // Client-side JavaScript to handle API calls
+        async function callAPI(endpoint, data, outputId) {
+            const outputElement = document.getElementById(outputId);
+            outputElement.innerHTML = 'Loading...';
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    body: data
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    outputElement.innerHTML = `<pre>${result.result}</pre>`;
+                } else {
+                    outputElement.innerHTML = `<span class="error">Error: ${result.error}</span>`;
+                }
+            } catch (error) {
+                console.error('API call failed:', error);
+                outputElement.innerHTML = `<span class="error">Failed to connect to the server.</span>`;
+            }
+        }
+
+        async function generateText() {
+            const prompt = document.getElementById('text-prompt').value;
+            const data = JSON.stringify({ prompt });
+            await callAPI('/generate-text', new Blob([data], { type: 'application/json' }), 'text-output');
+        }
+
+        async function generateFromImage() {
+            const fileInput = document.getElementById('image-file');
+            const prompt = document.getElementById('image-prompt').value;
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+            formData.append('prompt', prompt);
+            await callAPI('/generate-from-image', formData, 'image-output');
+        }
+
+        async function generateFromDocument() {
+            const fileInput = document.getElementById('document-file');
+            const prompt = document.getElementById('document-prompt').value;
+            const formData = new FormData();
+            formData.append('document', fileInput.files[0]);
+            formData.append('prompt', prompt);
+            await callAPI('/generate-from-document', formData, 'document-output');
+        }
+
+        async function generateFromAudio() {
+            const fileInput = document.getElementById('audio-file');
+            const prompt = document.getElementById('audio-prompt').value;
+            const formData = new FormData();
+            formData.append('audio', fileInput.files[0]);
+            formData.append('prompt', prompt);
+            await callAPI('/generate-from-audio', formData, 'audio-output');
+        }
+    </script>
+</body>
+</html>
